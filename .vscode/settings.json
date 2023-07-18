@@ -1,0 +1,12 @@
+{
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "none",
+    "python.formatting.blackPath": "${workspaceFolder}/.venv/bin/black",
+    "python.formatting.blackArgs": [
+        "--line-length",
+        "88"
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    }
+}
