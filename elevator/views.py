@@ -11,77 +11,14 @@ from elevator.serializers import (
     ElevatorSystemSerializer,
     ElevatorDetailSerializer,
     ElevatorRequestSerializer,
+    ElevatorListSerializer
 )
 from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema
 from elevator.models import ElevatorSystem, Elevator, ElevatorRequest
 from rest_framework.decorators import action
-from django.db.models import F, Case, When, Max, Func, Min
-from rest_framework import status
-
-def service_elevator(elevator, time_increment = 0):
-    if time_increment > 0:
-        
-        current_request = elevator.elevator_requests.filter(
-            status='PROCESSING'
-        ).last()
-    
-        # If no assigned request is found, continue
-        if current_request is None:
-            return time_increment
-
-        # Calculate the direction and distance to the destination floor
-        destination_floor = elevator.destination_floor or current_request.to_floor
-        direction = 1 if destination_floor > elevator.current_floor else -1
-        distance = abs(destination_floor - elevator.current_floor)
-
-        # Move the elevator towards the destination floor
-        floors_to_move = min(distance, time_increment)
-        elevator.current_floor += direction * floors_to_move
-        elevator.save(update_fields=["current_floor"])
-
-        # If the elevator has reached the destination floor, update the request and elevator status
-        if elevator.current_floor == destination_floor:
-            if destination_floor == current_request.to_floor:
-                elevator.status = 'available'
-                elevator.destination_floor = None
-                elevator.door = "open"
-                elevator.save(update_fields=["status", "destination_floor", "door"])
-                elevator.elevator_requests.filter(status="PROCESSING").update(status="FINISHED")
-            else:
-                elevator.destination_floor = current_request.to_floor
-                elevator.save(update_fields=["destination_floor"])
-        return min(distance, time_increment)
-    return time_increment
-
-
-def service_elevator_request(elevator_request):
-    # Find closest available elevator request
-    closest_available_elevator = (
-            Elevator.objects.filter(status="available")
-            .annotate(distance=Min(Abs(F("current_floor") - elevator_request.from_floor)))
-            .order_by("distance")
-            .first()
-        )
-
-    # If no available elevator is found, return None
-    if closest_available_elevator is None:
-        return None
-
-    # Update the elevator status and destination floor
-    closest_available_elevator.status = 'busy'
-    closest_available_elevator.destination_floor = elevator_request.from_floor
-    closest_available_elevator.save(update_fields=["status", "destination_floor"])
-
-    # Update the elevator request status and associated elevator
-    elevator_request.status = 'PROCESSING'
-    elevator_request.elevator = closest_available_elevator
-    elevator_request.save(update_fields=["status", "elevator"])
-
-    return closest_available_elevator
-    
-class Abs(Func):
-    function = "ABS"
+from django.db.models import F
+from utils.elevator import elevator_service
 
 class HelloWorldAPI(GenericViewSet):
     @extend_schema(responses={200: None})
@@ -97,37 +34,70 @@ class ElevatorSystemViewSet(
     UpdateModelMixin,
     DestroyModelMixin,
 ):
+    """
+    ViewSet for elevator systems.
+    """
     queryset = ElevatorSystem.objects.all()
     serializer_class = ElevatorSystemSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Method to create an elevator system.
+        """
         return super().create(request, *args, **kwargs)
 
 class ElevatorViewSet(
     GenericViewSet,
     CreateModelMixin,
     ListModelMixin,
+    RetrieveModelMixin,
     UpdateModelMixin,
     DestroyModelMixin,
 ):
+    """
+    ViewSet for elevators.
+    """
     serializer_class = ElevatorDetailSerializer
 
     def get_queryset(self):
+        """
+        Method to get the queryset for elevators.
+        :return: Queryset for elevators
+        """
+
+        # Get elevator system id from context and check if it exists
         elevator_system_id = self.kwargs.get("elevator_system_pk", None)
         if elevator_system_id is None:
             raise ValidationError(
                 "You need to specify elevator_system_id in query paramater"
             )
+        
+        # Return the elevators for the specified elevator system
         return ElevatorSystem.objects.get(id=elevator_system_id).elevators.all()
 
     def get_serializer(self, *args, **kwargs):
+
+        # Return ElevatorListSerializer if action is 'list'
+        if self.action == "list":
+            return ElevatorListSerializer
         return super().get_serializer(*args, **kwargs)
     
     @action(methods=['get'], detail=True)
     def get_direction(self, request, *args, **kwargs):
+        """
+        Method to get the direction of an elevator.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with the direction of the elevator
+        """
+
+        # Get elevator id from context and check if it exists
         elevator_id = self.kwargs.get("pk", None)
         if elevator_id is None:
             raise ValidationError("You need to specify elevator id in query paramater")
+        
+        # Get the specified elevator instance and its current request
         elevator = Elevator.objects.get(id=elevator_id)
 
         current_request = elevator.elevator_requests.filter(
@@ -136,6 +106,7 @@ class ElevatorViewSet(
         if current_request is None:
             return Response({"status": "Elevator is idle, not moving"})
         
+        # Mark the direction 1 for up and -1 for down
         destination_floor = elevator.destination_floor or current_request.to_floor
         direction = 1 if destination_floor > elevator.current_floor else -1
 
@@ -146,21 +117,44 @@ class ElevatorViewSet(
     
     @action(methods=['get'], detail=True)
     def get_elevator_requests(self, request, *args, **kwargs):
+        """
+        Method to get the elevator requests for an elevator.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with the elevator requests for the specified elevator
+        """
+        
+        # Get elevator id from context and check if it exists
         elevator_id = self.kwargs.get("pk", None)
         if elevator_id is None:
             raise ValidationError("You need to specify elevator id in query paramater")
+        
+        # Get the specified elevator instance and its requests
         qs = Elevator.objects.get(id=elevator_id).elevator_requests.all()
+        
+        # Serialize the requests and return the response
         serializer = ElevatorRequestSerializer(qs, many=True)
         return Response(serializer.data)
     
     @action(methods=['get'], detail=True)
     def get_next_destination_floor(self, request, *args, **kwargs):
+        """
+        Method to get the next destination floor for an elevator.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with the next destination floor for the specified elevator
+        """
+        
+        # Get elevator id from context and check if it exists
         elevator_id = self.kwargs.get("pk", None)
         if elevator_id is None:
             raise ValidationError("You need to specify elevator id in query paramater")
+        
+        # Get the specified elevator instance and its current request
         elevator = Elevator.objects.get(id=elevator_id)
-
-        # Find the current assigned request for the elevator
+        
         current_request = ElevatorRequest.objects.filter(
             status='PROCESSING',
             elevator=elevator
@@ -169,20 +163,33 @@ class ElevatorViewSet(
         current_request = elevator.elevator_requests.filter(
             status='PROCESSING'
         ).last()
+        
+        # If no assigned request is found, return that the elevator is idle
         if current_request is None:
             return Response({"status": "Elevator is idle, not moving"})
         
+        # Calculate the destination floor and return it in the response
         destination_floor = elevator.destination_floor or current_request.to_floor
 
         return Response({"status": f"Next Destination Floor is {destination_floor}"})
 
 
 class ElevatorRequestViewSet(GenericViewSet, CreateModelMixin):
+    """
+    ViewSet for elevator requests.
+    """
     serializer_class = ElevatorRequestSerializer
 
 class TimeIncrementViewSet(GenericViewSet):
 
     def get(self, request, *args, **kwargs):
+        """
+        Method to increment time.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with a success message
+        """
         time_increment = 1
 
         # Increment the time_elapsed field in all ElevatorSystem objects
@@ -200,7 +207,7 @@ class TimeIncrementViewSet(GenericViewSet):
             for elevator in busy_elevators:
 
                 # Check if there are any other pending requests that can be serviced by this elevator
-                remaining_time = time_increment - service_elevator(elevator, time_increment)
+                remaining_time = time_increment - elevator_service.service_elevator(elevator, time_increment)
                 while remaining_time > 0:
                     # Find the next pending request that can be serviced by this elevator
                     next_request = ElevatorRequest.objects.filter(
@@ -219,7 +226,7 @@ class TimeIncrementViewSet(GenericViewSet):
                     next_request.save()
 
                     # Service the next request
-                    remaining_time -= service_elevator(elevator, remaining_time)
+                    remaining_time -= elevator_service.service_elevator(elevator, remaining_time)
 
             # Find all pending elevator requests in the current elevator system
             pending_requests = ElevatorRequest.objects.filter(
@@ -230,14 +237,14 @@ class TimeIncrementViewSet(GenericViewSet):
             # Service each pending request
             for elevator_request in pending_requests:
                 # Find an available elevator to service the request
-                available_elevator = service_elevator_request(elevator_request)
+                available_elevator = elevator_service.service_elevator_request(elevator_request)
 
                 # If no available elevator is found, continue to the next request
                 if available_elevator is None:
                     continue
 
                 # Service the current assigned request for the available elevator
-                service_elevator(available_elevator, time_increment)
+                elevator_service.service_elevator(available_elevator, time_increment)
                 
 
         return Response({"status": "Elevator System time successfully incremented"})
