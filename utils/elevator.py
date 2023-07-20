@@ -1,10 +1,12 @@
 from elevator.models import Elevator
 from django.db.models import F, Min, Func
 
+
 class Abs(Func):
     """
     Class to represent the absolute value function.
     """
+
     function = "ABS"
 
 
@@ -21,15 +23,14 @@ class ElevatorService:
         :param time_increment: Time increment for servicing the elevator
         :return: Time increment after servicing the elevator
         """
-        
+
         # Check if time_increment is greater than 0
         if time_increment > 0:
-            
             # Get the current request for the elevator
             current_request = elevator.elevator_requests.filter(
-                status='PROCESSING'
+                status="PROCESSING"
             ).last()
-        
+
             # If no assigned request is found, continue
             if current_request is None:
                 return time_increment
@@ -47,17 +48,19 @@ class ElevatorService:
             # If the elevator has reached the destination floor, update the request and elevator status
             if elevator.current_floor == destination_floor:
                 if destination_floor == current_request.to_floor:
-                    elevator.status = 'available'
+                    elevator.status = "available"
                     elevator.destination_floor = None
                     elevator.door = "open"
                     elevator.save(update_fields=["status", "destination_floor", "door"])
-                    elevator.elevator_requests.filter(status="PROCESSING").update(status="FINISHED")
+                    elevator.elevator_requests.filter(status="PROCESSING").update(
+                        status="FINISHED"
+                    )
                 else:
                     elevator.destination_floor = current_request.to_floor
                     elevator.save(update_fields=["destination_floor"])
-            
+
             return min(distance, time_increment)
-        
+
         return time_increment
 
     @staticmethod
@@ -67,26 +70,28 @@ class ElevatorService:
         :param elevator_request: ElevatorRequest instance to be serviced
         :return: Closest available Elevator instance or None if no available elevators are found
         """
-        
+
         # Find closest available elevator request
         closest_available_elevator = (
-                Elevator.objects.filter(status="available")
-                .annotate(distance=Min(Abs(F("current_floor") - elevator_request.from_floor)))
-                .order_by("distance")
-                .first()
+            Elevator.objects.filter(status="available")
+            .annotate(
+                distance=Min(Abs(F("current_floor") - elevator_request.from_floor))
             )
+            .order_by("distance")
+            .first()
+        )
 
         # If no available elevator is found, return None
         if closest_available_elevator is None:
             return None
 
         # Update the elevator status and destination floor
-        closest_available_elevator.status = 'busy'
+        closest_available_elevator.status = "busy"
         closest_available_elevator.destination_floor = elevator_request.from_floor
         closest_available_elevator.save(update_fields=["status", "destination_floor"])
 
         # Update the elevator request status and associated elevator
-        elevator_request.status = 'PROCESSING'
+        elevator_request.status = "PROCESSING"
         elevator_request.elevator = closest_available_elevator
         elevator_request.save(update_fields=["status", "elevator"])
 
