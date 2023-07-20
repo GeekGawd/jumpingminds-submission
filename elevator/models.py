@@ -1,16 +1,23 @@
-from typing import Collection, Optional
+from typing import Collection, Iterable, Optional
 from django.db import models
 import uuid
-from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.utils.functional import cached_property
 
 # Create your models here.
 
+
+def maximum_time_elapsed():
+    maximum_time = ElevatorSystem.objects.aggregate(models.Max("time_elapsed"))["time_elapsed__max"]
+    if maximum_time is None:
+        return 0
+    return maximum_time
+
+
 class ElevatorSystem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
-    time_elapsed = models.PositiveBigIntegerField(default=0)
+    time_elapsed = models.PositiveBigIntegerField(default=maximum_time_elapsed)
     no_of_floors = models.IntegerField()
 
 class Elevator(models.Model):
@@ -32,17 +39,28 @@ class Elevator(models.Model):
             MinValueValidator(1)
         ]
     )
+    destination_floor = models.IntegerField(
+        default=None,
+        validators=[
+            MinValueValidator(1)
+        ],
+        blank=True,
+        null=True
+    )
     elevator_system = models.ForeignKey(ElevatorSystem, related_name="elevators", on_delete=models.CASCADE)
     door = models.CharField(max_length=10, choices=DOOR_CHOICES, default="open")
 
-    @cached_property
-    def is_operational(self):
-        if self.status == "available":
-            return True
-        return False
+    def __str__(self) -> str:
+        return f"{self.id}--{self.status}"
 
 class ElevatorRequest(models.Model):
-    elevator = models.ForeignKey(Elevator, related_name="elevator_requests", on_delete=models.CASCADE)
+    STATUS = [
+        ("FINISHED", "FINISHED"),
+        ("QUEUED", "QUEUED"),
+        ("PROCESSING", "PROCESSING")
+    ]
+    elevator = models.ForeignKey(Elevator, related_name="elevator_requests", on_delete=models.CASCADE, null=True, blank=True)
+    elevator_system = models.ForeignKey(ElevatorSystem, related_name="elevator_requests", on_delete=models.CASCADE)
     from_floor = models.IntegerField(
         validators=[
             MinValueValidator(1)
@@ -53,6 +71,12 @@ class ElevatorRequest(models.Model):
             MinValueValidator(1)
         ]
     )
+    status = models.CharField(choices=STATUS, max_length=15, default="QUEUED")
+
+    def save(self, *args, **kwargs) -> None:
+        if self.elevator is not None:
+            self.status = "PROCESSING"
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return f"{self.id}--{self.elevator.id}"
+        return f"{self.id}--{self.elevator}"

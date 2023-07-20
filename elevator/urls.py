@@ -19,6 +19,7 @@ elevator_system_nested_router.register(r"elevator-request", views.ElevatorReques
 
 urlpatterns = [
     path("", views.HelloWorldAPI.as_view({"get": "list"}), name="hello-world"),
+    path("time-increment/", views.TimeIncrementViewSet.as_view({"get": "get"}), name="time-increment"),
     path("", include(router.urls)),
     path("", include(elevator_system_nested_router.urls)),
     # path("", include(elevator_nested_router.urls)),
