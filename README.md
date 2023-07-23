@@ -50,7 +50,7 @@ docker-compose up --build -d
 I used uuid field for Elevator System and Elevators because it is more safe than AutoIntegerField in Django, also I am specifying the ids in the url so it would not have been safe.
 
 
-![Database ERD](https://imgur.com/a/xrLeHz4)
+![Database ERD](https://i.imgur.com/Ju75xxE.png)
 
 
 ### Elevator System
