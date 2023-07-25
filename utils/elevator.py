@@ -59,7 +59,7 @@ class ElevatorService:
                     elevator.destination_floor = current_request.to_floor
                     elevator.save(update_fields=["destination_floor"])
 
-            return min(distance, time_increment)
+            return time_increment
 
         return time_increment
 

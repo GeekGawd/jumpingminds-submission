@@ -19,6 +19,8 @@ from elevator.models import ElevatorSystem, Elevator, ElevatorRequest
 from rest_framework.decorators import action
 from django.db.models import F
 from utils.elevator import elevator_service
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 
 class HelloWorldAPI(GenericViewSet):
@@ -171,7 +173,6 @@ class ElevatorViewSet(
 
         return Response({"status": f"Next Destination Floor is {destination_floor}"})
 
-
 class ElevatorRequestViewSet(GenericViewSet, CreateModelMixin):
     """
     ViewSet for elevator requests.
@@ -179,7 +180,11 @@ class ElevatorRequestViewSet(GenericViewSet, CreateModelMixin):
 
     serializer_class = ElevatorRequestSerializer
 
-
+@extend_schema(
+    summary="Increment time in Elevator System",
+    description="Method to increment time in all ElevatorSystem objects and service pending elevator requests and current assigned requests in all elevator systems.",
+    responses={200: None},
+)
 class TimeIncrementViewSet(GenericViewSet):
     def get(self, request, *args, **kwargs):
         """

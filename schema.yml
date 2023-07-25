@@ -1,0 +1,711 @@
+openapi: 3.0.3
+info:
+  title: Jumping Minds Submission
+  version: 1.0.0
+  description: Elevator System API
+paths:
+  /api/v1/:
+    get:
+      operationId: api_v1_retrieve
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/elevator-system/:
+    get:
+      operationId: api_v1_elevator_system_list
+      description: ViewSet for elevator systems.
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ElevatorSystem'
+          description: ''
+    post:
+      operationId: api_v1_elevator_system_create
+      description: Method to create an elevator system.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorSystem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ElevatorSystem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ElevatorSystem'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorSystem'
+          description: ''
+  /api/v1/elevator-system/{elevator_system_pk}/elevator-request/:
+    post:
+      operationId: api_v1_elevator_system_elevator_request_create
+      description: ViewSet for elevator requests.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ElevatorRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ElevatorRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorRequest'
+          description: ''
+  /api/v1/elevator-system/{elevator_system_pk}/elevators/:
+    get:
+      operationId: api_v1_elevator_system_elevators_list
+      description: ViewSet for elevators.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ElevatorList'
+          description: ''
+    post:
+      operationId: api_v1_elevator_system_elevators_create
+      description: ViewSet for elevators.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ElevatorDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ElevatorDetail'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+  /api/v1/elevator-system/{elevator_system_pk}/elevators/{id}/:
+    get:
+      operationId: api_v1_elevator_system_elevators_retrieve
+      description: ViewSet for elevators.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+    put:
+      operationId: api_v1_elevator_system_elevators_update
+      description: ViewSet for elevators.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ElevatorDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ElevatorDetail'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+    patch:
+      operationId: api_v1_elevator_system_elevators_partial_update
+      description: ViewSet for elevators.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedElevatorDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedElevatorDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedElevatorDetail'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+    delete:
+      operationId: api_v1_elevator_system_elevators_destroy
+      description: ViewSet for elevators.
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/elevator-system/{elevator_system_pk}/elevators/{id}/get_direction/:
+    get:
+      operationId: api_v1_elevator_system_elevators_get_direction_retrieve
+      description: |-
+        Method to get the direction of an elevator.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with the direction of the elevator
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+  /api/v1/elevator-system/{elevator_system_pk}/elevators/{id}/get_elevator_requests/:
+    get:
+      operationId: api_v1_elevator_system_elevators_get_elevator_requests_retrieve
+      description: |-
+        Method to get the elevator requests for an elevator.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with the elevator requests for the specified elevator
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+  /api/v1/elevator-system/{elevator_system_pk}/elevators/{id}/get_next_destination_floor/:
+    get:
+      operationId: api_v1_elevator_system_elevators_get_next_destination_floor_retrieve
+      description: |-
+        Method to get the next destination floor for an elevator.
+        :param request: Request object
+        :param args: Additional arguments
+        :param kwargs: Additional keyword arguments
+        :return: Response object with the next destination floor for the specified elevator
+      parameters:
+      - in: path
+        name: elevator_system_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorDetail'
+          description: ''
+  /api/v1/elevator-system/{id}/:
+    get:
+      operationId: api_v1_elevator_system_retrieve
+      description: ViewSet for elevator systems.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this elevator system.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorSystem'
+          description: ''
+    put:
+      operationId: api_v1_elevator_system_update
+      description: ViewSet for elevator systems.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this elevator system.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevatorSystem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ElevatorSystem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ElevatorSystem'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorSystem'
+          description: ''
+    patch:
+      operationId: api_v1_elevator_system_partial_update
+      description: ViewSet for elevator systems.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this elevator system.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedElevatorSystem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedElevatorSystem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedElevatorSystem'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevatorSystem'
+          description: ''
+    delete:
+      operationId: api_v1_elevator_system_destroy
+      description: ViewSet for elevator systems.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this elevator system.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/time-increment/:
+    get:
+      operationId: api_v1_time_increment_retrieve
+      description: Method to increment time in all ElevatorSystem objects and service
+        pending elevator requests and current assigned requests in all elevator systems.
+      summary: Increment time in Elevator System
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+components:
+  schemas:
+    DoorEnum:
+      enum:
+      - open
+      - close
+      type: string
+      description: |-
+        * `open` - Open
+        * `close` - Close
+    ElevatorDetail:
+      type: object
+      description: Serializer for elevator details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        is_available:
+          type: boolean
+          description: |-
+            Method to check if an elevator is available.
+            :param instance: Elevator instance
+            :return: True if elevator is available, False otherwise
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/ElevatorDetailStatusEnum'
+        current_floor:
+          type: integer
+          minimum: 1
+        destination_floor:
+          type: integer
+          minimum: 1
+          nullable: true
+        door:
+          $ref: '#/components/schemas/DoorEnum'
+        elevator_system:
+          type: string
+          format: uuid
+      required:
+      - elevator_system
+      - id
+      - is_available
+    ElevatorDetailStatusEnum:
+      enum:
+      - available
+      - busy
+      - maintenance
+      type: string
+      description: |-
+        * `available` - Available
+        * `busy` - Busy
+        * `maintenance` - Maintenance
+    ElevatorList:
+      type: object
+      description: Serializer for listing elevators.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        current_floor:
+          type: integer
+          minimum: 1
+        is_available:
+          type: boolean
+          description: |-
+            Method to check if an elevator is available.
+            :param instance: Elevator instance
+            :return: True if elevator is available, False otherwise
+          readOnly: true
+      required:
+      - id
+      - is_available
+    ElevatorRequest:
+      type: object
+      description: Serializer for elevator requests.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        from_floor:
+          type: integer
+          minimum: 1
+        to_floor:
+          type: integer
+          minimum: 1
+        status:
+          $ref: '#/components/schemas/ElevatorRequestStatusEnum'
+        elevator:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        elevator_system:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - elevator
+      - elevator_system
+      - from_floor
+      - id
+      - to_floor
+    ElevatorRequestStatusEnum:
+      enum:
+      - FINISHED
+      - QUEUED
+      - PROCESSING
+      type: string
+      description: |-
+        * `FINISHED` - FINISHED
+        * `QUEUED` - QUEUED
+        * `PROCESSING` - PROCESSING
+    ElevatorSystem:
+      type: object
+      description: Serializer for elevator system.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        elevators:
+          type: array
+          items:
+            $ref: '#/components/schemas/ElevatorList'
+        name:
+          type: string
+          maxLength: 255
+        time_elapsed:
+          type: integer
+        no_of_floors:
+          type: integer
+      required:
+      - elevators
+      - id
+      - name
+      - no_of_floors
+    PatchedElevatorDetail:
+      type: object
+      description: Serializer for elevator details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        is_available:
+          type: boolean
+          description: |-
+            Method to check if an elevator is available.
+            :param instance: Elevator instance
+            :return: True if elevator is available, False otherwise
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/ElevatorDetailStatusEnum'
+        current_floor:
+          type: integer
+          minimum: 1
+        destination_floor:
+          type: integer
+          minimum: 1
+          nullable: true
+        door:
+          $ref: '#/components/schemas/DoorEnum'
+        elevator_system:
+          type: string
+          format: uuid
+    PatchedElevatorSystem:
+      type: object
+      description: Serializer for elevator system.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        elevators:
+          type: array
+          items:
+            $ref: '#/components/schemas/ElevatorList'
+        name:
+          type: string
+          maxLength: 255
+        time_elapsed:
+          type: integer
+        no_of_floors:
+          type: integer
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

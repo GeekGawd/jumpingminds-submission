@@ -65,13 +65,13 @@ This model represents a request made by a user to use an elevator to travel from
 
 ## Logic
 
-Going throught the documentation and tryin to implement the logic. I took the liberty to add a time factor to the elevator system. Because without it there would be no concept of busy state, given the elevators don't take any time to go up and down. So, I have made time_increment API, that increments the world by 1.
+Going through the documentation and trying to implement the logic. I took the liberty to add a time factor to the elevator system. Because without it there would be no concept of busy state, given the elevators don't take any time to go up and down. So, I have made time_increment API, that increments the world by 1.
 
 The elevators will automatically service requests using FIFO(First in First Out). If there are not service elevators available then they will be put in a Queue and will be serviced later on when the elevators become available.
 
 ## Video
 
-
+https://clipchamp.com/watch/qegRdpjiHa1
 
 ## Notable Libraries Used
 

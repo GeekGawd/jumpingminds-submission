@@ -15,7 +15,7 @@ class ElevatorListSerializer(ModelSerializer):
         fields = ["id", "current_floor", "is_available"]
         read_only_fields = ["id", "elevator_system"]
 
-    def get_is_available(self, instance):
+    def get_is_available(self, instance) -> bool:
         """
         Method to check if an elevator is available.
         :param instance: Elevator instance
@@ -133,6 +133,7 @@ class ElevatorRequestSerializer(ModelSerializer):
 
         # Get from_floor from validated_data and check if it exists
         from_floor = validated_data["from_floor"]
+        to_floor = validated_data["to_floor"]
         if from_floor is None:
             raise ValidationError("You need to specify from_floor in request body")
         
@@ -148,7 +149,10 @@ class ElevatorRequestSerializer(ModelSerializer):
 
         # If there are no pending elevator requests and there is an available elevator, fulfill the request
         if closest_available_elevator and pending_elevator_request is None:
-            closest_available_elevator.destination_floor = from_floor
+            if closest_available_elevator.current_floor != from_floor:
+                closest_available_elevator.current_floor = from_floor
+            else:
+                closest_available_elevator.destination_floor = to_floor
             closest_available_elevator.status = "busy"
             closest_available_elevator.door = "close"
             closest_available_elevator.save(update_fields=["destination_floor", "status", "door"])
@@ -157,8 +161,12 @@ class ElevatorRequestSerializer(ModelSerializer):
         elif closest_available_elevator and pending_elevator_request is not None:
             pending_elevator_request.status = "PROCESSING"
             pending_elevator_request.save(update_fields=["status"])
-            
-            closest_available_elevator.destination_floor = pending_elevator_request.from_floor
+            if closest_available_elevator.current_floor != pending_elevator_request.from_floor:
+                closest_available_elevator.current_floor = pending_elevator_request.from_floor
+            else: 
+                closest_available_elevator.destination_floor = pending_elevator_request.to_floor
             closest_available_elevator.status = "busy"
             closest_available_elevator.door = "close"
             closest_available_elevator.save(update_fields=["destination_floor", "status", "door"])
+
+        return ElevatorRequest.objects.create(elevator = closest_available_elevator, **validated_data)
